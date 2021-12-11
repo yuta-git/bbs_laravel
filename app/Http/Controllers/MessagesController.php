@@ -14,8 +14,8 @@ class MessagesController extends Controller
      */
     public function index()
     {
-        // Messageモデルを使って、MySQLのmessagesテーブルから全データ取得
-        $messages = Message::all();
+        // Messageモデルを使って、MySQLのmessagesテーブルから15件のデータ取得
+        $messages = Message::paginate(15);
         
         // 連想配列のデータを1セット（viewで引き出すキーワードと値のセット）引き連れてviewを呼び出す
         return view('messages.index', compact('messages'));
@@ -156,17 +156,8 @@ class MessagesController extends Controller
         // データベースを更新
         $message->save();
         
-        // セッションにflash_messageを保存
-        session(['flash_message' => 'id: ' . $message->id . 'の投稿の更新が成功しました']);
-        
-        // showアクションにリダイレクト
-        return redirect('/messages/' . $message->id);
-        
-
-        // セッションにerrors保存
-        session(['errors' => $errors]);
-        // editアクションにリダイレクト
-        return redirect('/messages/' . $message->id . '/edit');
+        // フラッシュメッセージを保存しながらshowアクションにリダイレクト
+        return redirect('/messages/' . $message->id)->with('flash_message', 'id: ' . $message->id . 'の投稿の更新が成功しました');
     
     }
 
