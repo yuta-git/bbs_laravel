@@ -29,7 +29,7 @@
             @endif
             </div>
             <div class="row mt-5">
-                <a href="create.php" class="btn btn-primary">新規投稿</a>
+                <a href="/messages/create" class="btn btn-primary">新規投稿</a>
             </div> 
         </div>
         
