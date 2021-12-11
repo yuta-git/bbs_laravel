@@ -67,7 +67,7 @@ class MessagesController extends Controller
      */
     public function store(Request $request)
     {
-              // 入力された値を取得
+        // 入力された値を取得
         $name = $request->input('name');
         $title = $request->input('title');
         $body = $request->input('body');
@@ -129,7 +129,13 @@ class MessagesController extends Controller
      */
     public function show(Message $message)
     {
-        //
+        // フラッシュメッセージをnullにセット
+        $flash_message = null;
+        // エラーメッセージをnullにセット
+        $errors = null;
+        
+        // 連想配列のデータを3セット（viewで引き出すキーワードと値のセット）引き連れてviewを呼び出す
+        return view('messages.show', compact('message', 'flash_message', 'errors'));
     }
 
     /**
@@ -140,7 +146,7 @@ class MessagesController extends Controller
      */
     public function edit(Message $message)
     {
-        //
+       dd('edit');
     }
 
     /**
@@ -152,7 +158,7 @@ class MessagesController extends Controller
      */
     public function update(Request $request, Message $message)
     {
-        //
+      
     }
 
     /**
@@ -163,6 +169,6 @@ class MessagesController extends Controller
      */
     public function destroy(Message $message)
     {
-        //
+         dd('destroy');
     }
 }
