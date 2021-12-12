@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MessagesController extends Controller
 {
@@ -41,33 +42,39 @@ class MessagesController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        //validation
+        
+        // validation
         $this->validate($request, [
-          'name' => 'required',
-          'title' => 'required',
-          'body' => 'required',
-          'image' => [
-            'required',
-            'file',
-            'mimes:jpeg,jpg,png'
+            'name' => 'required',
+            'title' => 'required',
+            'body' => 'required',
+            'image' => [
+                'required',
+                'file',
+                'mimes:jpeg,jpg,png'
             ]
         ]);
-      
+        
         // 入力された値を取得
         $name = $request->input('name');
         $title = $request->input('title');
         $body = $request->input('body');
         // 画像ファイル情報の取得だけ特殊
         $file =  $request->image;
-    
-        // 現在時刻ともともとのファイル名を組み合わせてランダムなファイル名作成
-        $image = time() . $file->getClientOriginalName();
-        // アップロードするフォルダ名取得
-        $target_path = public_path('uploads/');
-        // 画像アップロード処理
-        $file->move($target_path, $image);
+        
+        // // 現在時刻ともともとのファイル名を組み合わせてランダムなファイル名作成
+        // $image = time() . $file->getClientOriginalName();
+        // // アップロードするフォルダ名取得
+        // $target_path = public_path('uploads/');
+        // // 画像アップロード処理
+        // $file->move($target_path, $image);
+
+        // S3用
+        $path = Storage::disk('s3')->putFile('/uploads', $file, 'public');
+        // パスから、最後の「ファイル名.拡張子」の部分だけ取得
+        $image = basename($path);
 
         // 空のメッセージインスタンスを作成
         $message = new Message();
@@ -77,15 +84,14 @@ class MessagesController extends Controller
         $message->title = $title;
         $message->body = $body;
         $message->image = $image;
-        
+
         // メッセージインスタンスをデータベースに保存
         $message->save();
         
         // セッションにフラッシュメッセージを保存しながら、indexアクションにリダイレクト
         return redirect('/')->with('flash_message', '新規投稿が成功しました');
-    
+        
     }
-
     /**
      * Display the specified resource.
      *
@@ -120,15 +126,16 @@ class MessagesController extends Controller
      * @param  \App\Message  $message
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Message $message)
+  public function update(Request $request, Message $message)
     {
-        //validation
+        
+        // validation
         $this->validate($request, [
-          'name' => 'required',
-          'title' => 'required',
-          'body' => 'required',
+            'name' => 'required',
+            'title' => 'required',
+            'body' => 'required',
         ]);
-      
+        
         // 入力された値を取得
         $name = $request->input('name');
         $title = $request->input('title');
@@ -139,31 +146,35 @@ class MessagesController extends Controller
         // 画像ファイルが選択されていれば
         if ($file) { 
         
-            // 現在時刻ともともとのファイル名を組み合わせてランダムなファイル名作成
-            $image = time() . $file->getClientOriginalName();
-            // アップロードするフォルダ名取得
-            $target_path = public_path('uploads/');
-            // 画像アップロード処理
-            $file->move($target_path, $image);
+            // // 現在時刻ともともとのファイル名を組み合わせてランダムなファイル名作成
+            // $image = time() . $file->getClientOriginalName();
+            // // アップロードするフォルダ名取得
+            // $target_path = public_path('uploads/');
+            // // 画像アップロード処理
+            // $file->move($target_path, $image);
+            
+            // S3用
+            $path = Storage::disk('s3')->putFile('/uploads', $file, 'public');
+            // パスから、最後の「ファイル名.拡張子」の部分だけ取得
+            $image = basename($path);
 
         } else { // ファイルが選択されていなければ元の値を保持
             $image = $message->image;
         }
         
-        // 入力された値をセット
+        // 入力されたでインスタンス情報を更新
         $message->name = $name;
         $message->title = $title;
         $message->body = $body;
         $message->image = $image;
-        
+
         // データベースを更新
         $message->save();
         
         // フラッシュメッセージを保存しながらshowアクションにリダイレクト
         return redirect('/messages/' . $message->id)->with('flash_message', 'id: ' . $message->id . 'の投稿の更新が成功しました');
-    
-    }
 
+    }
     /**
      * Remove the specified resource from storage.
      *
